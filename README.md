@@ -47,10 +47,10 @@ To use this Telegram Expense Tracker Bot:
 1. Set up a Google Sheets spreadsheet to store expense data. Sample sheet as the image in preview.png.
 2. Replace the constants in the code with your own values.
 3. Deploy the Google Apps Script web app using the provided code.
-   3.1. Replace TOKEN with your bot token.
-   3.2. Replace `chat_ID` with your desired default chat ID. You can get the chat ID where messages are sent by using `getChatId()` function. Remember to `deleteWebhook()` first.
-   3.3. Deploy.
-   3.4. Get the deploy url in the popup. Replace `DEPLOYED_URL` with your received url.
-   3.5. Run `setWebhook()`.
+   - Replace TOKEN with your bot token.
+   - Replace `chat_ID` with your desired default chat ID. You can get the chat ID where messages are sent by using `getChatId()` function. Remember to `deleteWebhook()` first.
+   - Deploy.
+   - Get the deploy url in the popup. Replace `DEPLOYED_URL` with your received url.
+   - Run `setWebhook()`.
 4. Interact with the bot in your Telegram chat to track expenses.
 
