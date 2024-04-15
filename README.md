@@ -44,7 +44,7 @@ Replace these field with your information.
 ## Usage
 To use this Telegram Expense Tracker Bot:
 
-1. Set up a Google Sheets spreadsheet to store expense data. Sample sheet as the image in preview.png.
+1. Set up a Google Sheets spreadsheet to store expense data. Sample sheet as the image in sheet-preview.png.
 2. Replace the constants in the code with your own values.
 3. Deploy the Google Apps Script web app using the provided code.
    - Replace TOKEN with your bot token.
