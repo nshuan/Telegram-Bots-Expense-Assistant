@@ -18,6 +18,7 @@ const DOUBLE_EXCLAIMATION_EMOJI = '\u203C';
 const EXCLAIMATION_EMOJI = '\u2757\uFE0F';
 
 const IGNORE_CAPITAL = false;
+const NUM_ROWS_SUBTABLE = 5;
 
 const METHODS = {
   SEND_MESSAGE: 'sendMessage',
@@ -221,14 +222,14 @@ const getUserData = (name) => {
   if (userIndex === -1) return null;
   const userCol = sheet.getRange(USER_COL + '1').getColumn();
   const data = sheet.getRange(USER_ROW + userIndex, userCol, 1, 5);
-  
+
   return data;
 }
 
 const getUsers = () => {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = sheet.getRange(USER_COL + USER_ROW + ':' + USER_COL);
-  
+
   return data;
 }
 
@@ -268,7 +269,7 @@ const help = (input = null) => {
 }
 
 const addMem = (id, name) => {
-  if (name.indexOf(' ') !== -1){
+  if (name.indexOf(' ') !== -1) {
     return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: There should not be any space in username!'));
   }
 
@@ -301,8 +302,7 @@ const findUser = (name) => {
   if (checkUserExist(name) === false) return sendMessage(monoText('Username does not exist!'));
 
   const userRange = getUserData(name);
-  if (userRange !== null)
-  {
+  if (userRange !== null) {
     var userData = userRange.getValues().filter(String);
     var content = '';
     content = content + 'Username: ' + name + '\n';
@@ -317,8 +317,7 @@ const listUser = () => {
   const userCount = users.length;
   var content = 'Registered Users:\n';
 
-  for (var i = 0; i < userCount; i++)
-  {
+  for (var i = 0; i < userCount; i++) {
     content = content + users[i][0].toString() + '\n';
   }
 
@@ -328,14 +327,37 @@ const listUser = () => {
 const listExpense = () => {
   const expenses = getExpenseData().getValues().filter(String);
   const expenseCount = expenses.length;
-  var content = '';
-
-  for (var i = 0; i < expenseCount; i++)
-  {
-    content = content + (i + 1) + ', ' + expenses[i][0].toString() + ',\n' + expenses[i][2] + ', ' + formatMoney(expenses[i][3]) + ',\n' + expenses[i][1] + '\n\n';
+  var content = "| No | Timestamp    | Who | Spend for                                   | Price     |\n" +
+                "|----|--------------|-----|---------------------------------------------|-----------|\n";
+  var i = 0;
+  while (i < expenseCount - 1) {
+    let record = `|${(i + 1)
+      .toString()
+      .padStart(4, '0')}|${expenses[i][0]
+        .toLocaleString('vi-VN', {
+          year: '2-digit',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })}|${expenses[i][2]
+          .toString()
+          .padEnd(5)}|${expenses[i][1]
+            .toString()
+            .slice(0, 44)
+            .padEnd(45)}|${formatMoney(expenses[i][3])
+              .toString()
+              .padStart(11)}|\n`;
+    content += record;
+    i++;
+    if (i % NUM_ROWS_SUBTABLE == 0) {
+      sendMessage(codeBlockText(content));
+      content = "| No | Timestamp    | Who | Spend for                                   | Price     |\n" +
+                "|----|--------------|-----|---------------------------------------------|-----------|\n";
+    }
   }
-
-  return sendMessage(monoText(content));
+  sendMessage(codeBlockText(content));
+  return sendMessage(`Found ${expenseCount - 1} spends, open in landscape mode (mobile) or full size mode (desktop) for good view`);
 }
 
 const showSummary = () => {
@@ -347,7 +369,7 @@ const showSummary = () => {
   const userCol = sheet.getRange(USER_COL + USER_ROW).getColumn();
   const userDatas = sheet.getRange(USER_ROW, userCol, userNum, 4).getValues();
   for (var i = 0; i < userNum; i++) {
-    content = content + userDatas[i][0].toString() + ': ' + MONEY_BAG_EMOJI + formatMoney(userDatas[i][1]) + ', ' + DOUBLE_EXCLAIMATION_EMOJI + formatMoney(userDatas[i][3]) + '\n'; 
+    content = content + userDatas[i][0].toString() + ': ' + MONEY_BAG_EMOJI + formatMoney(userDatas[i][1]) + ', ' + DOUBLE_EXCLAIMATION_EMOJI + formatMoney(userDatas[i][3]) + '\n';
   }
 
   content = content + '\nTotal expenses: ' + totalExpenses + '\n';
@@ -366,6 +388,10 @@ const boldText = (text) => {
 
 const italicText = (text) => {
   return '*' + text + '*';
+}
+
+const codeBlockText = (text, language = 'txt') => {
+  return '```' + language + '\n' + text + '\n' + '```';
 }
 
 const formatMoney = (value) => {
@@ -404,7 +430,7 @@ const addExpense = (text, user) => {
   const time = new Date().toLocaleString();
   const price = Number(priceText) * getMultiplyBase(unitLabel);
 
-  addNewRow([time, label, user,price]);
+  addNewRow([time, label, user, price]);
 }
 
 // Webhooks
@@ -423,46 +449,39 @@ const doPost = (request) => {
 
   if (type === null || type.length === 0) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
   command = type[0].toLowerCase();
-  
+
   if (checkCommandExist(command, COMMANDS) === false) return sendMessage(monoText('Command not found!'));
 
 
-  if (command === COMMANDS.HELP.command)
-  {
+  if (command === COMMANDS.HELP.command) {
     if (type.length < 2) return help();
     return help(text.slice(command.length + 1).toLowerCase());
   }
-  if (command === COMMANDS.ADD_MEM.command)
-  {
+  if (command === COMMANDS.ADD_MEM.command) {
     if (type.length < 2) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     user = text.slice(command.length + 1);
     return addMem(message.from.id, user);
   }
-  if (command === COMMANDS.FIND_MEM.command)
-  {
+  if (command === COMMANDS.FIND_MEM.command) {
     if (type.length < 2) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     user = text.slice(command.length + 1);
     return findUser(user);
   }
-  if (command === COMMANDS.LIST_MEM.command)
-  {
+  if (command === COMMANDS.LIST_MEM.command) {
     if (type.length > 1) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     return listUser();
   }
-  if (command === COMMANDS.SPEND.command)
-  {
+  if (command === COMMANDS.SPEND.command) {
     if (type.length < 4) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     user = type[1];
     addExpense(text.slice(command.length + 1), user);
     showSummary();
-  }  
-  if (command === COMMANDS.SUMMARY.command)
-  {
+  }
+  if (command === COMMANDS.SUMMARY.command) {
     if (type.length > 1) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     return showSummary();
   }
-  if (command === COMMANDS.EXPENSES.command)
-  {
+  if (command === COMMANDS.EXPENSES.command) {
     if (type.length > 1) return sendMessage(monoText(EXCLAIMATION_EMOJI + 'Error: Syntax error!'));
     return listExpense();
   }
